@@ -1,0 +1,38 @@
+# EdgeDash user configuration
+# Copy this file, rename it config.yaml, and edit to match your profile.
+# No value here is secret — keep secrets in environment variables only.
+
+# The role title you are targeting (used in search queries and scoring).
+target_role: "Data Analyst"
+
+# City / metro area for job searches.
+target_city: "Bengaluru"
+
+# Additional keywords injected into search queries.
+keywords:
+  - "SQL"
+  - "Python"
+  - "Power BI"
+  - "ETL"
+  - "data pipeline"
+
+# Your current skills (used by GapAnalyzer to surface what you are missing).
+my_skills:
+  - "SQL"
+  - "Python"
+  - "Excel"
+  - "Tableau"
+  - "pandas"
+  - "data cleaning"
+  - "stakeholder reporting"
+
+# Years of total relevant experience (used in fit scoring).
+experience_years: 3
+
+# Path to the SQLite database file, relative to the repo root.
+# Will be replaced by a DATABASE_URL env var when migrating to Postgres.
+db_path: "edgedash.db"
+
+# Listings with a fit score below this threshold are excluded from the
+# dashboard default view.
+min_fit_score: 50

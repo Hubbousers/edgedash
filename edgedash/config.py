@@ -1,0 +1,77 @@
+"""Load and validate project configuration from config.yaml at the repo root."""
+
+from __future__ import annotations
+
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
+
+try:
+    import yaml
+except ModuleNotFoundError as exc:  # noqa: F841
+    sys.exit(
+        "PyYAML is required: pip install pyyaml\n"
+        "(needed to parse config.yaml — no alternative in the stdlib)"
+    )
+
+# Repo root is one level above this file's package directory.
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+_CONFIG_PATH = _REPO_ROOT / "config.yaml"
+
+_DEFAULTS: dict[str, Any] = {
+    "target_role": "Data Analyst",
+    "target_city": "Bengaluru",
+    "keywords": [],
+    "my_skills": [],
+    "experience_years": 0,
+    "db_path": "edgedash.db",
+    "min_fit_score": 50,
+}
+
+
+@dataclass
+class Config:
+    target_role: str
+    target_city: str
+    keywords: list[str]
+    my_skills: list[str]
+    experience_years: int
+    db_path: str
+    min_fit_score: int
+
+    # Convenience: resolve db_path relative to the repo root when it is not
+    # an absolute path, so callers never have to think about working directory.
+    @property
+    def resolved_db_path(self) -> Path:
+        p = Path(self.db_path)
+        return p if p.is_absolute() else _REPO_ROOT / p
+
+
+def load_config(path: Path = _CONFIG_PATH) -> Config:
+    """Read *path* and return a validated Config.
+
+    Raises FileNotFoundError with a human-readable message when the file is
+    absent.  Falls back to _DEFAULTS for any field that is missing from the
+    file so partial configs are still usable.
+    """
+    if not path.exists():
+        raise FileNotFoundError(
+            f"config.yaml not found at {path}\n"
+            "Copy config.yaml.example to config.yaml and fill in your details."
+        )
+
+    with path.open("r", encoding="utf-8") as fh:
+        raw: dict[str, Any] = yaml.safe_load(fh) or {}
+
+    merged = {**_DEFAULTS, **raw}
+
+    return Config(
+        target_role=str(merged["target_role"]),
+        target_city=str(merged["target_city"]),
+        keywords=list(merged["keywords"]),
+        my_skills=list(merged["my_skills"]),
+        experience_years=int(merged["experience_years"]),
+        db_path=str(merged["db_path"]),
+        min_fit_score=int(merged["min_fit_score"]),
+    )
