@@ -36,3 +36,12 @@ db_path: "edgedash.db"
 # Listings with a fit score below this threshold are excluded from the
 # dashboard default view.
 min_fit_score: 50
+
+# Enabled job sources (must match keys in the SOURCES registry).
+# Add more source names here when new sources are implemented.
+sources:
+  - "arbeitnow"
+
+# Set to true to use MockFetcher instead of the real Fetcher.
+# Useful for offline development and testing without hitting any network.
+use_mock_fetcher: false

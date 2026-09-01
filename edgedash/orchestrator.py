@@ -87,11 +87,16 @@ class _PlaceholderAgent:
 # ---------------------------------------------------------------------------
 # To swap MockFetcher for the real Fetcher: change line below and nothing else.
 
-def _build_registry() -> list[Agent]:
-    from edgedash.agents.mock_fetcher import MockFetcher  # noqa: PLC0415
+def _build_registry(config: Config) -> list[Agent]:
+    if config.use_mock_fetcher:
+        from edgedash.agents.mock_fetcher import MockFetcher  # noqa: PLC0415
+        fetcher: Agent = MockFetcher()
+    else:
+        from edgedash.agents.fetcher import Fetcher  # noqa: PLC0415
+        fetcher = Fetcher()
 
     return [
-        MockFetcher(),
+        fetcher,
         # --- PLACEHOLDER: replace with real Scorer when ready ---
         _PlaceholderAgent(
             "Scorer",
@@ -171,7 +176,7 @@ def run_cycle(config: Config) -> None:
     print(_h("  Running Agents"))
     print(_SEP)
 
-    registry  = _build_registry()
+    registry  = _build_registry(config)
     results:  list[AgentResult] = []
 
     for agent in registry:

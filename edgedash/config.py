@@ -27,6 +27,8 @@ _DEFAULTS: dict[str, Any] = {
     "experience_years": 0,
     "db_path": "edgedash.db",
     "min_fit_score": 50,
+    "sources": ["arbeitnow"],
+    "use_mock_fetcher": False,
 }
 
 
@@ -39,6 +41,8 @@ class Config:
     experience_years: int
     db_path: str
     min_fit_score: int
+    sources: list[str]
+    use_mock_fetcher: bool
 
     # Convenience: resolve db_path relative to the repo root when it is not
     # an absolute path, so callers never have to think about working directory.
@@ -74,4 +78,6 @@ def load_config(path: Path = _CONFIG_PATH) -> Config:
         experience_years=int(merged["experience_years"]),
         db_path=str(merged["db_path"]),
         min_fit_score=int(merged["min_fit_score"]),
+        sources=list(merged["sources"]),
+        use_mock_fetcher=bool(merged["use_mock_fetcher"]),
     )
