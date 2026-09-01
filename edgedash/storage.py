@@ -174,6 +174,58 @@ def log_cycle(
         )
 
 
+def count_by_source(path: str | Path) -> list[dict[str, Any]]:
+    """Return [{source, count}] ordered by count descending."""
+    with _connect(path) as conn:
+        rows = conn.execute(
+            "SELECT source, COUNT(*) AS count FROM listings GROUP BY source ORDER BY count DESC"
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def cross_source_duplicates(path: str | Path) -> list[dict[str, Any]]:
+    """Return listings that share an identical (title, company) pair across
+    different sources — probable duplicates fetched from multiple boards."""
+    sql = """
+        SELECT title, company, COUNT(DISTINCT source) AS source_count,
+               GROUP_CONCAT(DISTINCT source) AS sources
+        FROM   listings
+        WHERE  title IS NOT NULL AND company IS NOT NULL
+        GROUP  BY LOWER(title), LOWER(company)
+        HAVING COUNT(DISTINCT source) > 1
+        ORDER  BY source_count DESC, company
+    """
+    with _connect(path) as conn:
+        rows = conn.execute(sql).fetchall()
+    return [dict(r) for r in rows]
+
+
+def recent_listings(path: str | Path, n: int = 5) -> list[dict[str, Any]]:
+    """Return the *n* most recently fetched listings."""
+    with _connect(path) as conn:
+        rows = conn.execute(
+            "SELECT source, title, company, url, fetched_at FROM listings "
+            "ORDER BY fetched_at DESC LIMIT ?",
+            (n,),
+        ).fetchall()
+    return [dict(r) for r in rows]
+
+
+def quality_issues(path: str | Path) -> list[dict[str, Any]]:
+    """Return listings where url, title, or company is NULL or empty string."""
+    sql = """
+        SELECT id, source, title, company, url
+        FROM   listings
+        WHERE  url     IS NULL OR TRIM(url)     = ''
+            OR title   IS NULL OR TRIM(title)   = ''
+            OR company IS NULL OR TRIM(company) = ''
+        ORDER  BY fetched_at DESC
+    """
+    with _connect(path) as conn:
+        rows = conn.execute(sql).fetchall()
+    return [dict(r) for r in rows]
+
+
 def get_listings(
     path: str | Path,
     limit: int = 50,
