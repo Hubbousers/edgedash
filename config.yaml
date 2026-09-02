@@ -3,31 +3,98 @@
 # No value here is secret — keep secrets in environment variables only.
 
 # The role title you are targeting (used in search queries and scoring).
-target_role: "Data Analyst"
+target_role: "Data Engineer"
 
 # City / metro area for job searches.
-target_city: "Bengaluru"
+target_city: "Hyderabad"
 
 # Additional keywords injected into search queries.
+# Kept broad enough to discover relevant Data Engineering roles.
 keywords:
+  - "Data Engineer"
+  - "Senior Data Engineer"
+  - "Cloud Data Engineer"
+  - "Data Platform"
+  - "Data Engineering"
+  - "BigQuery"
+  - "GCP"
+  - "Google Cloud"
+  - "Azure"
+  - "Databricks"
+  - "PySpark"
+  - "Spark"
   - "SQL"
   - "Python"
-  - "Power BI"
   - "ETL"
-  - "data pipeline"
+  - "ELT"
+  - "Airflow"
+  - "Data Factory"
+  - "Microsoft Fabric"
+  - "Lakehouse"
+  - "Data Warehouse"
+  - "Data Pipeline"
 
 # Your current skills (used by GapAnalyzer to surface what you are missing).
 my_skills:
   - "SQL"
   - "Python"
-  - "Excel"
-  - "Tableau"
+  - "PySpark"
+  - "Spark SQL"
+  - "Apache Spark"
   - "pandas"
-  - "data cleaning"
-  - "stakeholder reporting"
+  - "Advanced SQL"
+  - "ETL"
+  - "ELT"
+  - "Data Engineering"
+  - "Data Architecture"
+  - "HLD"
+  - "LLD"
+  - "Dimensional Modeling"
+  - "Data Vault"
+  - "SCD Type 2"
+  - "Data Quality"
+  - "Data Governance"
+  - "Data Lineage"
+  - "Data Reconciliation"
+  - "BigQuery"
+  - "BigQuery ML"
+  - "Google Cloud Platform"
+  - "GCP"
+  - "Cloud Run"
+  - "Cloud Functions"
+  - "Pub/Sub"
+  - "Dataflow"
+  - "Cloud Composer"
+  - "Apache Airflow"
+  - "Databricks"
+  - "Delta Lake"
+  - "Apache Iceberg"
+  - "Medallion Architecture"
+  - "Auto Loader"
+  - "CDC"
+  - "Unity Catalog"
+  - "Microsoft Azure"
+  - "Azure Data Factory"
+  - "Azure Synapse Analytics"
+  - "Microsoft Fabric"
+  - "Fabric Lakehouse"
+  - "Fabric Data Warehouse"
+  - "OneLake"
+  - "Dataflow Gen2"
+  - "SAP ECC"
+  - "SAP S/4HANA"
+  - "Salesforce"
+  - "REST APIs"
+  - "Kafka"
+  - "Looker"
+  - "RAG"
+  - "LangChain"
+  - "LangGraph"
+  - "Google Cloud ADK"
+  - "Agentic AI"
 
 # Years of total relevant experience (used in fit scoring).
-experience_years: 3
+experience_years: 4
 
 # Path to the SQLite database file, relative to the repo root.
 # Will be replaced by a DATABASE_URL env var when migrating to Postgres.
@@ -45,3 +112,20 @@ sources:
 # Set to true to use MockFetcher instead of the real Fetcher.
 # Useful for offline development and testing without hitting any network.
 use_mock_fetcher: false
+
+# LLM provider and model for scoring. Changing the model requires only a
+# config change — no code change needed.
+llm_provider: "openrouter"
+llm_model: "liquid/lfm-2.5-2.6b:free"
+
+# Fallback models tried in order when the primary fails with 402/429/5xx.
+# All listed here are free-tier on OpenRouter — no credits needed.
+# To use Nemotron Ultra for production scoring, set llm_model to
+# "nvidia/nemotron-3-ultra-550b-a55b" (no :free suffix) once you have credits.
+llm_model_fallbacks:
+  - "minimax/minimax-m3:free"
+  - "openrouter/free"
+
+# Maximum number of listings scored per cycle. Caps cost and rate-limit
+# exposure — do not remove this guard.
+score_batch_size: 25

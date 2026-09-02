@@ -87,6 +87,57 @@ explicit confirmation.
 14. **Respect the source.** Rate-limit to at most 1 request per second per
     source, set a real `User-Agent`, and honour any documented page limits.
 
+## Intelligence & Scoring
+
+15. **All LLM calls go through `edgedash/llm.py` only.** That module exposes
+    one function. The provider and model name come from config, never hardcoded.
+    No other file imports an LLM SDK or makes direct LLM API calls.
+
+16. **Use OpenRouter as the LLM provider.** The API key comes from
+    `OPENROUTER_API_KEY` in the environment — never hardcoded, never in
+    `config.yaml`. If the key is missing, raise a clear, actionable error. Never
+    silently fall back to another provider. The OpenRouter base URL and
+    authentication are centralised inside `llm.py`; no other module may know
+    how to construct or authenticate an OpenRouter request.
+
+17. **Keep provider and model separate in config:**
+    ```yaml
+    llm_provider: "openrouter"
+    llm_model: "openai/gpt-oss-20b"   # change here only — never in code
+    score_batch_size: 25
+    ```
+    Changing the model must require a config change only, not a code change.
+
+18. **Rate-limit all OpenRouter calls inside `llm.py`:** default 1 request per
+    second, max 15 per minute. The limiter applies to every call; callers do not
+    manage it.
+
+19. **The model extracts structured facts only — never scores or rankings.**
+    All scoring arithmetic is deterministic Python in one function. The model
+    never sees the scoring weights.
+
+20. **Every model response is validated against an explicit schema before use.**
+    A response that fails validation is retried once, then logged as a failure
+    for that listing only — it must not crash the cycle or stop remaining
+    listings. Never `json.loads` raw model text without a validation and repair
+    path. When the selected model supports it, request structured JSON output via
+    OpenRouter; do not rely on provider-specific behaviour alone.
+
+21. **Scoring is idempotent.** Never re-score a listing that already has a
+    score. Select only `WHERE fit_score IS NULL`. Cache extraction results keyed
+    on a hash of the job description so the same text is never sent to the model
+    twice.
+
+22. **Every score carries a human-readable reason generated from the score
+    components by our code** — never free text written by the model.
+
+23. **Log the score distribution** (count, min, max, mean, spread) to
+    `cycle_log` on every scoring run. A run where all scores fall within 10
+    points of each other is a suspect run and must be logged as such.
+
+24. **Cap listings scored per cycle at `score_batch_size`** (default 25) so a
+    cost or rate-limit blowup is structurally impossible.
+
 ## Style
 
 - Small, testable functions over large procedural blocks.

@@ -29,6 +29,13 @@ _DEFAULTS: dict[str, Any] = {
     "min_fit_score": 50,
     "sources": ["arbeitnow"],
     "use_mock_fetcher": False,
+    "llm_provider": "openrouter",
+    "llm_model": "nvidia/nemotron-3-ultra-550b-a55b",
+    "score_batch_size": 25,
+    "llm_model_fallbacks": [
+        "mistralai/mistral-7b-instruct:free",
+        "google/gemma-3-4b-it:free",
+    ],
 }
 
 
@@ -43,6 +50,10 @@ class Config:
     min_fit_score: int
     sources: list[str]
     use_mock_fetcher: bool
+    llm_provider: str
+    llm_model: str
+    score_batch_size: int
+    llm_model_fallbacks: list[str]
 
     # Convenience: resolve db_path relative to the repo root when it is not
     # an absolute path, so callers never have to think about working directory.
@@ -80,4 +91,8 @@ def load_config(path: Path = _CONFIG_PATH) -> Config:
         min_fit_score=int(merged["min_fit_score"]),
         sources=list(merged["sources"]),
         use_mock_fetcher=bool(merged["use_mock_fetcher"]),
+        llm_provider=str(merged["llm_provider"]),
+        llm_model=str(merged["llm_model"]),
+        score_batch_size=int(merged["score_batch_size"]),
+        llm_model_fallbacks=list(merged["llm_model_fallbacks"]),
     )
