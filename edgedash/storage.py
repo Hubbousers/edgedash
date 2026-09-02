@@ -74,11 +74,22 @@ _DDL = [
         notes           TEXT
     )
     """,
+    """
+    CREATE TABLE IF NOT EXISTS extraction_cache (
+        description_hash TEXT PRIMARY KEY,
+        result_json      TEXT NOT NULL,
+        cached_at        TEXT NOT NULL
+    )
+    """,
 ]
 
 
 def init_db(path: str | Path) -> None:
-    """Create all tables if they do not already exist."""
+    """Create all tables if they do not already exist.
+
+    Safe to run on an existing database — uses CREATE TABLE IF NOT EXISTS
+    throughout, so re-running never drops or alters existing data.
+    """
     with _connect(path) as conn:
         for statement in _DDL:
             conn.execute(statement)
@@ -224,6 +235,35 @@ def quality_issues(path: str | Path) -> list[dict[str, Any]]:
     with _connect(path) as conn:
         rows = conn.execute(sql).fetchall()
     return [dict(r) for r in rows]
+
+
+def get_extraction_cache(path: str | Path, description_hash: str) -> dict[str, Any] | None:
+    """Return the cached extraction result for *description_hash*, or None on miss."""
+    import json as _json
+    with _connect(path) as conn:
+        row = conn.execute(
+            "SELECT result_json FROM extraction_cache WHERE description_hash = ?",
+            (description_hash,),
+        ).fetchone()
+    return _json.loads(row["result_json"]) if row else None
+
+
+def set_extraction_cache(
+    path: str | Path,
+    description_hash: str,
+    result: dict[str, Any],
+) -> None:
+    """Store *result* in the extraction cache keyed on *description_hash*."""
+    import json as _json
+    with _connect(path) as conn:
+        conn.execute(
+            """
+            INSERT OR REPLACE INTO extraction_cache
+                (description_hash, result_json, cached_at)
+            VALUES (?, ?, ?)
+            """,
+            (description_hash, _json.dumps(result), _now_iso()),
+        )
 
 
 def get_listings(
